@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Stuti Arcana</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #0f1118;
+      --surface: #171b26;
+      --surface-strong: #1f2638;
+      --text: #f5f7ff;
+      --muted: #a5accb;
+      --accent: #9a7dff;
+      --border: rgba(255, 255, 255, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top, rgba(154, 125, 255, 0.16), transparent 35%),
+        linear-gradient(180deg, #0b0d13 0%, #111521 55%, #151a27 100%);
+      color: var(--text);
+    }
+
+    .app-shell {
+      width: min(1024px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 32px 0 64px;
+    }
+
+    header {
+      margin-bottom: 28px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(2rem, 2.75vw, 3rem);
+    }
+
+    p {
+      color: var(--muted);
+      line-height: 1.7;
+      max-width: 760px;
+    }
+
+    .card-panel {
+      background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+
+    .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+
+    .readings-grid {
+      display: grid;
+      gap: 18px;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    }
+
+    .reading-card,
+    .summary-box {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 18px;
+      padding: 18px;
+    }
+
+    .reading-card h3,
+    .summary-box h3 {
+      margin: 0 0 12px;
+      font-size: 1.05rem;
+    }
+
+    .reading-card .card-name {
+      margin: 0 0 14px;
+      font-weight: 700;
+    }
+
+    .reading-card .card-meaning,
+    .summary-box p {
+      margin: 0;
+      line-height: 1.75;
+      color: var(--muted);
+    }
+
+    .primary-button,
+    .secondary-button {
+      border: none;
+      border-radius: 999px;
+      padding: 12px 18px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: transform 160ms ease, background-color 160ms ease;
+    }
+
+    .primary-button {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .secondary-button {
+      background: rgba(255,255,255,0.08);
+      color: var(--text);
+    }
+
+    .primary-button:hover,
+    .secondary-button:hover {
+      transform: translateY(-1px);
+    }
+
+    .manual-form {
+      display: grid;
+      gap: 14px;
+    }
+
+    .manual-form label {
+      display: grid;
+      gap: 8px;
+      font-size: 0.95rem;
+    }
+
+    .manual-form input,
+    .manual-form select,
+    .manual-form textarea {
+      width: 100%;
+      border: 1px solid rgba(255,255,255,0.1);
+      background: rgba(255,255,255,0.04);
+      color: var(--text);
+      padding: 12px 14px;
+      border-radius: 14px;
+    }
+
+    .manual-form textarea {
+      min-height: 108px;
+      resize: vertical;
+    }
+
+    .summary-panel {
+      padding-bottom: 28px;
+    }
+
+    .summary-text {
+      display: grid;
+      gap: 14px;
+    }
+
+    .summary-text p {
+      margin: 0;
+    }
+
+    @media (max-width: 620px) {
+      .app-shell {
+        padding: 24px 12px 48px;
+      }
+    }
+
+    .intro-panel {
+      border: 2px solid var(--accent);
+      background: linear-gradient(135deg, rgba(154, 125, 255, 0.08), rgba(154, 125, 255, 0.04));
+    }
+
+    .intro-content h2 {
+      margin: 0 0 16px;
+      color: var(--accent);
+    }
+
+    .intro-content ul {
+      margin: 12px 0;
+      padding-left: 24px;
+    }
+
+    .intro-content li {
+      margin: 8px 0;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .story-reading {
+      font-size: 1.1rem;
+      line-height: 1.9;
+      color: var(--text);
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+
+    .story-reading strong {
+      color: var(--accent);
+    }
+
+    .reading-controls {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 18px;
+      padding-top: 18px;
+      border-top: 1px solid var(--border);
+    }
+
+    .voice-button,
+    .download-button {
+      border: none;
+      border-radius: 999px;
+      padding: 10px 16px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.9rem;
+      transition: transform 160ms ease, background-color 160ms ease;
+      background: rgba(154, 125, 255, 0.2);
+      color: var(--accent);
+      border: 1px solid var(--accent);
+    }
+
+    .voice-button:hover,
+    .download-button:hover {
+      background: rgba(154, 125, 255, 0.3);
+      transform: translateY(-1px);
+    }
+
+    .voice-button.playing {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.7);
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+
+    .modal-overlay.active {
+      display: flex;
+    }
+
+    .modal-content {
+      background: var(--surface-strong);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 28px;
+      max-width: 400px;
+      width: 90%;
+    }
+
+    .modal-content h3 {
+      margin: 0 0 16px;
+      color: var(--accent);
+    }
+
+    .modal-content input {
+      width: 100%;
+      border: 1px solid rgba(255,255,255,0.1);
+      background: rgba(255,255,255,0.04);
+      color: var(--text);
+      padding: 12px 14px;
+      border-radius: 14px;
+      margin-bottom: 16px;
+      font-size: 0.95rem;
+    }
+
+    .modal-buttons {
+      display: flex;
+      gap: 12px;
+    }
+
+    .modal-buttons button {
+      flex: 1;
+      border: none;
+      border-radius: 999px;
+      padding: 12px 18px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: transform 160ms ease, background-color 160ms ease;
+    }
+
+    .modal-buttons .confirm-btn {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .modal-buttons .cancel-btn {
+      background: rgba(255,255,255,0.08);
+      color: var(--text);
+    }
+
+    .modal-buttons button:hover {
+      transform: translateY(-1px);
+    }
+  </style>
+</head>
+<body>
+  <main class="app-shell">
+    <header>
+      <h1>Stuti Arcana</h1>
+      <p>Draw 3 cards or enter the cards manually to receive guidance through a clear Past / Present / Future reading.</p>
+    </header>
+
+    <section class="card-panel intro-panel">
+      <div class="intro-content">
+        <h2>✨ Welcome to Your Reading ✨</h2>
+        <p><strong>Before you begin:</strong> Take a moment to center yourself. Think of a question or intention you'd like guidance on. The cards speak to those who listen with an open heart.</p>
+        <ul>
+          <li><strong>Draw 3 Cards</strong> for a classic Past / Present / Future reading, or</li>
+          <li><strong>Draw 5 Cards</strong> for a deeper dive into Situation, Challenge, Hidden Influence, Advice, and Outcome</li>
+          <li><strong>Manually enter cards</strong> with your personal narration to craft your own reading</li>
+        </ul>
+        <p style="font-style: italic; margin-top: 18px; color: #9a7dff;">The past shapes your journey, the present reveals your moment, and the future calls to your potential.</p>
+      </div>
+    </section>
+
+    <section class="card-panel">
+      <div class="panel-header">
+        <h2>Quick Draw</h2>
+        <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+          <button id="draw-button-3" type="button" class="primary-button">Draw 3 Cards</button>
+          <button id="draw-button-5" type="button" class="primary-button">Draw 5 Cards</button>
+        </div>
+      </div>
+      <div id="readings" class="readings-grid"></div>
+    </section>
+
+    <section class="card-panel">
+      <div class="panel-header">
+        <h2>Manual Entry</h2>
+      </div>
+      <form id="manual-form" class="manual-form">
+        <label>
+          Card name
+          <input list="card-list" id="manual-card" placeholder="e.g. The Empress" autocomplete="off" />
+        </label>
+        <datalist id="card-list"></datalist>
+
+        <label>
+          Placement
+          <select id="manual-position">
+            <optgroup label="3-Card Reading">
+              <option value="past">Past</option>
+              <option value="present">Present</option>
+              <option value="future">Future</option>
+            </optgroup>
+            <optgroup label="5-Card Reading">
+              <option value="situation">Situation</option>
+              <option value="challenge">Challenge</option>
+              <option value="influence">Hidden Influence</option>
+              <option value="advice">Advice</option>
+              <option value="outcome">Outcome</option>
+            </optgroup>
+          </select>
+        </label>
+
+        <label>
+          Your reading note
+          <textarea id="manual-note" rows="4" placeholder="Add your personal narration or context here..."></textarea>
+        </label>
+
+        <button type="submit" class="secondary-button">Add / Update Card</button>
+      </form>
+    </section>
+
+    <section class="card-panel summary-panel">
+      <h2>Reading Summary</h2>
+      <div id="summary" class="summary-text">
+        <p>Select cards or draw a reading to see the story unfold here.</p>
+      </div>
+      <div class="reading-controls" id="reading-controls" style="display: none;">
+        <button class="voice-button" id="voice-button">🔊 Read Aloud</button>
+        <button class="download-button" id="download-button">📥 Download Reading</button>
+      </div>
+    </section>
+  </main>
+
+  <div class="modal-overlay" id="download-modal">
+    <div class="modal-content">
+      <h3>📥 Download Your Reading</h3>
+      <input type="text" id="download-filename" placeholder="e.g. My Reading - April 29" />
+      <div class="modal-buttons">
+        <button class="confirm-btn" id="confirm-download">Download</button>
+        <button class="cancel-btn" id="cancel-download">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const cardNames = [
+      'The Fool', 'The Magician', 'The High Priestess', 'The Empress', 'The Emperor',
+      'The Hierophant', 'The Lovers', 'The Chariot', 'Strength', 'The Hermit',
+      'Wheel of Fortune', 'Justice', 'The Hanged Man', 'Death', 'Temperance',
+      'The Devil', 'The Tower', 'The Star', 'The Moon', 'The Sun',
+      'Judgement', 'The World'
+    ];
+
+    const suits = ['Wands', 'Cups', 'Swords', 'Pentacles'];
+    const ranks = ['Ace', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Page', 'Knight', 'Queen', 'King'];
+    const minorNames = suits.flatMap((suit) => ranks.map((rank) => `${rank} of ${suit}`));
+    const allCardNames = [...cardNames, ...minorNames];
+
+    const positionLabels = {
+      past: 'Past',
+      present: 'Present',
+      future: 'Future',
+      situation: 'Situation',
+      challenge: 'Challenge',
+      influence: 'Hidden Influence',
+      advice: 'Advice',
+      outcome: 'Outcome'
+    };
+
+    const readings = {
+      past: null,
+      present: null,
+      future: null,
+      situation: null,
+      challenge: null,
+      influence: null,
+      advice: null,
+      outcome: null
+    };
+
+    let currentReadingType = '3-card';
+
+    let readingsContainer;
+    let summaryContainer;
+    let manualForm;
+    let cardList;
+
+    let currentStoryText = '';
+    let isVoicePlaying = false;
+
+    const synth = window.speechSynthesis;
+
+    function populateCardList() {
+      allCardNames.forEach((name) => {
+        const option = document.createElement('option');
+        option.value = name;
+        cardList.appendChild(option);
+      });
+    }
+
+    function randomCards(count = 3) {
+      const deck = [...allCardNames];
+      const selected = [];
+      while (selected.length < count && deck.length) {
+        const index = Math.floor(Math.random() * deck.length);
+        selected.push(deck.splice(index, 1)[0]);
+      }
+      return selected;
+    }
+
+    function getCardMeaning(card) {
+      if (!card) {
+        return 'Choose a card to see the meaning.';
+      }
+
+      const majorMeanings = {
+        'The Fool': 'New beginnings, trust, courage, and stepping into the unknown with an open heart.',
+        'The Magician': 'Personal power, focus, creative energy, and the ability to bring ideas into reality.',
+        'The High Priestess': 'Intuition, inner wisdom, hidden knowledge, and a reminder to listen to your inner voice.',
+        'The Empress': 'Abundance, nurturing, creativity, and connection to nature and comfort.',
+        'The Emperor': 'Structure, authority, leadership, stability, and boundaries that protect progress.',
+        'The Hierophant': 'Tradition, ritual, guidance, and learning through established values or mentors.',
+        'The Lovers': 'Meaningful relationships, choices, harmony, and alignment between heart and values.',
+        'The Chariot': 'Drive, determination, direction, and the power to overcome obstacles through focus.',
+        'Strength': 'Compassion, courage, resilience, and gentle control over fear or inner challenges.',
+        'The Hermit': 'Reflection, solitude, inner searching, and seeking wisdom away from distractions.',
+        'Wheel of Fortune': 'Cycles, change, destiny, and the arrival of new opportunities from shifting circumstances.',
+        'Justice': 'Balance, truth, consequences, and trusting that fairness will be restored.',
+        'The Hanged Man': 'Pause, surrender, new perspective, and letting go of what no longer serves you.',
+        'Death': 'Transformation, endings that make space for new beginnings, and deep renewal.',
+        'Temperance': 'Patience, harmony, moderation, and blending opposites into a balanced flow.',
+        'The Devil': 'Attachment, temptation, fear, and the call to examine what is limiting or addictive.',
+        'The Tower': 'Sudden change, disruption, awakening, and breaking down old structures to rebuild stronger.',
+        'The Star': 'Hope, healing, renewal, and a gentle reminder that guidance is present even in darkness.',
+        'The Moon': 'Mystery, intuition, hidden truths, and the invitation to trust inner feelings over outer assumptions.',
+        'The Sun': 'Joy, clarity, success, vitality, and the energy of celebration and confidence.',
+        'Judgement': 'Rebirth, awakening, forgiveness, and recognizing the call to grow from the past.',
+        'The World': 'Completion, fulfillment, achievement, and a sense of wholeness after a long journey.'
+      };
+
+      if (majorMeanings[card]) {
+        return majorMeanings[card];
+      }
+
+      const parts = card.split(' of ');
+      if (parts.length === 2) {
+        const [rank, suit] = parts;
+        const suitMeanings = {
+          Wands: 'Energy, creativity, passion, and action.',
+          Cups: 'Emotions, relationships, intuition, and deep feeling.',
+          Swords: 'Thought, communication, challenge, and mental clarity.',
+          Pentacles: 'Material reality, work, security, and practical growth.'
+        };
+
+        const rankMeanings = {
+          Ace: 'A fresh beginning, inspiration, or powerful new momentum in this area.',
+          Two: 'A partnership, choice, balance, or a delicate decision that needs attention.',
+          Three: 'Community, cooperation, skill building, or early success through collaboration.',
+          Four: 'Stability, structure, boundaries, or the need to build a secure foundation.',
+          Five: 'Conflict, change, challenge, and a shift that asks you to adapt and learn.',
+          Six: 'Harmony, healing, support, and the return of peace after imbalance.',
+          Seven: 'Faith, courage, perseverance, and the need to stick with your vision despite doubt.',
+          Eight: 'Movement, progress, focus, and the energy of a swift change in motion.',
+          Nine: 'Reflection, refinement, persistence, and a final push toward mastery.',
+          Ten: 'Completion, responsibility, culmination, and the transition into a new phase.',
+          Page: 'Curiosity, learning, messages, and the spark of a new idea or relationship.',
+          Knight: 'Action, pursuit, adventure, and focused movement in the direction you choose.',
+          Queen: 'Compassion, intuition, leadership, and emotional maturity within the suit.',
+          King: 'Authority, mastery, stability, and the ability to guide others with confidence.'
+        };
+
+        const suitDescription = suitMeanings[suit] || 'A suit energy that will shape the message.';
+        const rankDescription = rankMeanings[rank] || 'A card that carries a clear message for the current focus.';
+        return `${rankDescription} ${suitDescription}`;
+      }
+
+      return 'This card is unique. Use your intuition and the note field to describe what it means in your reading.';
+    }
+
+    function renderReading() {
+      readingsContainer.innerHTML = '';
+      const summaryLines = [];
+
+      const positionsToShow = currentReadingType === '3-card' 
+        ? ['past', 'present', 'future']
+        : ['situation', 'challenge', 'influence', 'advice', 'outcome'];
+
+      positionsToShow.forEach((position) => {
+        const card = readings[position]?.card || 'Not selected';
+        const meaning = readings[position]?.meaning || 'No card selected yet.';
+        const note = readings[position]?.note || '';
+
+        const cardElement = document.createElement('article');
+        cardElement.className = 'reading-card';
+        cardElement.innerHTML = `
+          <h3>${positionLabels[position]}</h3>
+          <p class="card-name">${card}</p>
+          <p class="card-meaning">${meaning}</p>
+        `;
+        readingsContainer.appendChild(cardElement);
+
+        if (card !== 'Not selected') {
+          summaryLines.push({
+            position,
+            card,
+            meaning,
+            note
+          });
+        }
+      });
+
+      if (summaryLines.length) {
+        const story = generateStory(summaryLines);
+        currentStoryText = story.replace(/<strong>|<\/strong>/g, '').replace(/\n/g, ' ');
+        summaryContainer.innerHTML = `<div class="story-reading">${story}</div>`;
+        document.getElementById('reading-controls').style.display = 'flex';
+      } else {
+        currentStoryText = '';
+        summaryContainer.innerHTML = '<p>Select cards or draw a reading to see the story unfold here.</p>';
+        document.getElementById('reading-controls').style.display = 'none';
+      }
+    }
+
+    function generateStory(summaryLines) {
+      if (currentReadingType === '3-card') {
+        return generate3CardStory(summaryLines);
+      } else {
+        return generate5CardStory(summaryLines);
+      }
+    }
+
+    function generate3CardStory(summaryLines) {
+      const past = summaryLines.find(s => s.position === 'past');
+      const present = summaryLines.find(s => s.position === 'present');
+      const future = summaryLines.find(s => s.position === 'future');
+
+      let story = '';
+
+      if (past) {
+        story += `<strong>✧ Your Past ✧</strong>\n`;
+        story += `The ${past.card} brings forth the essence of your journey so far.\n`;
+        story += `${past.meaning}\n`;
+        if (past.note) story += `\nYour reflection: "${past.note}"\n`;
+        story += `\n`;
+      }
+
+      if (present) {
+        story += `<strong>✧ Your Present ✧</strong>\n`;
+        story += `Now, at this very moment, ${present.card} stands at the center of your story.\n`;
+        story += `${present.meaning}\n`;
+        if (present.note) story += `\nYour insight: "${present.note}"\n`;
+        story += `\n`;
+      }
+
+      if (future) {
+        story += `<strong>✧ Your Future ✧</strong>\n`;
+        story += `What awaits you is written in ${future.card}.\n`;
+        story += `${future.meaning}\n`;
+        if (future.note) story += `\nYour vision: "${future.note}"\n`;
+        story += `\n`;
+      }
+
+      story += `\n<strong>✦ The Reading Speaks ✦</strong>\n`;
+      story += `Your three cards weave a narrative of transformation and growth. Trust the guidance they offer.`;
+
+      return story;
+    }
+
+    function generate5CardStory(summaryLines) {
+      const situation = summaryLines.find(s => s.position === 'situation');
+      const challenge = summaryLines.find(s => s.position === 'challenge');
+      const influence = summaryLines.find(s => s.position === 'influence');
+      const advice = summaryLines.find(s => s.position === 'advice');
+      const outcome = summaryLines.find(s => s.position === 'outcome');
+
+      let story = '';
+
+      if (situation) {
+        story += `<strong>✧ The Situation ✧</strong>\n`;
+        story += `At the heart of your inquiry lies ${situation.card}.\n`;
+        story += `${situation.meaning}\n`;
+        if (situation.note) story += `\nYour understanding: "${situation.note}"\n`;
+        story += `\n`;
+      }
+
+      if (challenge) {
+        story += `<strong>✧ The Challenge ✧</strong>\n`;
+        story += `${challenge.card} reveals the obstacle before you.\n`;
+        story += `${challenge.meaning}\n`;
+        if (challenge.note) story += `\nYour awareness: "${challenge.note}"\n`;
+        story += `\n`;
+      }
+
+      if (influence) {
+        story += `<strong>✧ Hidden Influence ✧</strong>\n`;
+        story += `Beneath the surface flows ${influence.card}.\n`;
+        story += `${influence.meaning}\n`;
+        if (influence.note) story += `\nYour intuition: "${influence.note}"\n`;
+        story += `\n`;
+      }
+
+      if (advice) {
+        story += `<strong>✧ Your Path Forward ✧</strong>\n`;
+        story += `${advice.card} lights the way.\n`;
+        story += `${advice.meaning}\n`;
+        if (advice.note) story += `\nYour commitment: "${advice.note}"\n`;
+        story += `\n`;
+      }
+
+      if (outcome) {
+        story += `<strong>✧ The Outcome ✧</strong>\n`;
+        story += `This journey culminates in ${outcome.card}.\n`;
+        story += `${outcome.meaning}\n`;
+        if (outcome.note) story += `\nYour wisdom: "${outcome.note}"\n`;
+        story += `\n`;
+      }
+
+      story += `\n<strong>✦ The Five-Fold Path ✦</strong>\n`;
+      story += `Five cards reveal the intricate dance of cause and consequence. Your reading speaks of complexity, opportunity, and the power within you.`;
+
+      return story;
+    }
+
+    function assignReadingPosition(position, cardName, note = '') {
+      const cleanCard = cardName.trim();
+      if (!cleanCard) {
+        return;
+      }
+
+      readings[position] = {
+        card: cleanCard,
+        meaning: getCardMeaning(cleanCard),
+        note: note.trim()
+      };
+      renderReading();
+    }
+
+    function speakStory() {
+      if (isVoicePlaying) {
+        synth.cancel();
+        isVoicePlaying = false;
+        document.getElementById('voice-button').classList.remove('playing');
+        document.getElementById('voice-button').textContent = '🔊 Read Aloud';
+        return;
+      }
+
+      if (!currentStoryText) {
+        alert('No reading to read. Draw or enter cards first.');
+        return;
+      }
+
+      const utterance = new SpeechSynthesisUtterance(currentStoryText);
+      utterance.rate = 0.9;
+      utterance.pitch = 1;
+      utterance.volume = 1;
+
+      utterance.onstart = () => {
+        isVoicePlaying = true;
+        document.getElementById('voice-button').classList.add('playing');
+        document.getElementById('voice-button').textContent = '⏸ Stop Reading';
+      };
+
+      utterance.onend = () => {
+        isVoicePlaying = false;
+        document.getElementById('voice-button').classList.remove('playing');
+        document.getElementById('voice-button').textContent = '🔊 Read Aloud';
+      };
+
+      synth.speak(utterance);
+    }
+
+    function downloadReading() {
+      if (!currentStoryText) {
+        alert('No reading to download. Draw or enter cards first.');
+        return;
+      }
+
+      document.getElementById('download-modal').classList.add('active');
+      setTimeout(() => document.getElementById('download-filename').focus(), 100);
+    }
+
+    function confirmDownload() {
+      let filename = document.getElementById('download-filename').value.trim();
+      
+      if (!filename) {
+        filename = 'Stuti Arcana Reading';
+      }
+
+      const timestamp = new Date().toISOString().split('T')[0];
+      filename = `${filename} - ${timestamp}.txt`;
+
+      const element = document.createElement('a');
+      element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(currentStoryText));
+      element.setAttribute('download', filename);
+      element.style.display = 'none';
+      document.body.appendChild(element);
+      element.click();
+      document.body.removeChild(element);
+
+      document.getElementById('download-modal').classList.remove('active');
+      document.getElementById('download-filename').value = '';
+    }
+
+    function cancelDownload() {
+      document.getElementById('download-modal').classList.remove('active');
+      document.getElementById('download-filename').value = '';
+    }
+
+    function drawReading() {
+      const [pastCard, presentCard, futureCard] = randomCards(3);
+      assignReadingPosition('past', pastCard);
+      assignReadingPosition('present', presentCard);
+      assignReadingPosition('future', futureCard);
+    }
+
+    function draw3Cards() {
+      currentReadingType = '3-card';
+      readings.situation = null;
+      readings.challenge = null;
+      readings.influence = null;
+      readings.advice = null;
+      readings.outcome = null;
+      
+      const [pastCard, presentCard, futureCard] = randomCards(3);
+      assignReadingPosition('past', pastCard);
+      assignReadingPosition('present', presentCard);
+      assignReadingPosition('future', futureCard);
+    }
+
+    function draw5Cards() {
+      currentReadingType = '5-card';
+      readings.past = null;
+      readings.present = null;
+      readings.future = null;
+      
+      const [situationCard, challengeCard, influenceCard, adviceCard, outcomeCard] = randomCards(5);
+      assignReadingPosition('situation', situationCard);
+      assignReadingPosition('challenge', challengeCard);
+      assignReadingPosition('influence', influenceCard);
+      assignReadingPosition('advice', adviceCard);
+      assignReadingPosition('outcome', outcomeCard);
+    }
+
+    function init() {
+      drawButton3 = document.getElementById('draw-button-3');
+      drawButton5 = document.getElementById('draw-button-5');
+      readingsContainer = document.getElementById('readings');
+      summaryContainer = document.getElementById('summary');
+      manualForm = document.getElementById('manual-form');
+      cardList = document.getElementById('card-list');
+
+      if (!drawButton3 || !drawButton5 || !readingsContainer || !summaryContainer || !manualForm || !cardList) {
+        console.error('Tarot Reading App: missing DOM elements', { drawButton3, drawButton5, readingsContainer, summaryContainer, manualForm, cardList });
+        return;
+      }
+
+      populateCardList();
+      renderReading();
+
+      drawButton3.addEventListener('click', draw3Cards);
+      drawButton5.addEventListener('click', draw5Cards);
+
+      document.getElementById('voice-button').addEventListener('click', speakStory);
+      document.getElementById('download-button').addEventListener('click', downloadReading);
+      document.getElementById('confirm-download').addEventListener('click', confirmDownload);
+      document.getElementById('cancel-download').addEventListener('click', cancelDownload);
+
+      document.getElementById('download-modal').addEventListener('click', (e) => {
+        if (e.target.id === 'download-modal') {
+          cancelDownload();
+        }
+      });
+
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          if (document.getElementById('download-modal').classList.contains('active')) {
+            cancelDownload();
+          }
+        }
+      });
+
+      document.getElementById('download-filename').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          confirmDownload();
+        }
+      });
+
+      manualForm.addEventListener('submit', (event) => {
+        event.preventDefault();
+        const cardInput = document.getElementById('manual-card').value;
+        const positionInput = document.getElementById('manual-position').value;
+        const noteInput = document.getElementById('manual-note').value;
+
+        if (!cardInput.trim()) {
+          alert('Please enter a card name before saving.');
+          return;
+        }
+
+        assignReadingPosition(positionInput, cardInput, noteInput);
+        manualForm.reset();
+      });
+    }
+
+    window.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
+</html>
