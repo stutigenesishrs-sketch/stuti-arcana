@@ -151,6 +151,27 @@
       resize: vertical;
     }
 
+    .question-block {
+      display: grid;
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+
+    .question-block label {
+      font-size: 0.95rem;
+    }
+
+    .question-block textarea {
+      width: 100%;
+      border: 1px solid rgba(255,255,255,0.1);
+      background: rgba(255,255,255,0.04);
+      color: var(--text);
+      padding: 12px 14px;
+      border-radius: 14px;
+      min-height: 88px;
+      resize: vertical;
+    }
+
     .summary-panel {
       padding-bottom: 28px;
     }
@@ -318,7 +339,7 @@
 
     <section class="card-panel intro-panel">
       <div class="intro-content">
-        <h2>✨ Welcome to Your Reading ✨</h2>
+        <h2>Welcome to Your Reading</h2>
         <p><strong>Before you begin:</strong> Take a moment to center yourself. Think of a question or intention you'd like guidance on. The cards speak to those who listen with an open heart.</p>
         <ul>
           <li><strong>Draw 3 Cards</strong> for a classic Past / Present / Future reading, or</li>
@@ -332,10 +353,14 @@
     <section class="card-panel">
       <div class="panel-header">
         <h2>Quick Draw</h2>
-        <div style="display: flex; gap: 12px; flex-wrap: wrap;">
-          <button id="draw-button-3" type="button" class="primary-button">Draw 3 Cards</button>
-          <button id="draw-button-5" type="button" class="primary-button">Draw 5 Cards</button>
-        </div>
+      </div>
+      <div class="question-block">
+        <label for="question-input">Your question (optional)</label>
+        <textarea id="question-input" placeholder="What would you like guidance on today?"></textarea>
+      </div>
+      <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+        <button id="draw-button-3" type="button" class="primary-button">Draw 3 Cards</button>
+        <button id="draw-button-5" type="button" class="primary-button">Draw 5 Cards</button>
       </div>
       <div id="readings" class="readings-grid"></div>
     </section>
@@ -381,18 +406,18 @@
     <section class="card-panel summary-panel">
       <h2>Reading Summary</h2>
       <div id="summary" class="summary-text">
-        <p>Select cards or draw a reading to see the story unfold here.</p>
+        <p>Write a question if you have one, then draw cards to see the story unfold here.</p>
       </div>
       <div class="reading-controls" id="reading-controls" style="display: none;">
-        <button class="voice-button" id="voice-button">🔊 Read Aloud</button>
-        <button class="download-button" id="download-button">📥 Download Reading</button>
+        <button class="voice-button" id="voice-button">Read Aloud</button>
+        <button class="download-button" id="download-button">Download Reading</button>
       </div>
     </section>
   </main>
 
   <div class="modal-overlay" id="download-modal">
     <div class="modal-content">
-      <h3>📥 Download Your Reading</h3>
+      <h3>Download Your Reading</h3>
       <input type="text" id="download-filename" placeholder="e.g. My Reading - April 29" />
       <div class="modal-buttons">
         <button class="confirm-btn" id="confirm-download">Download</button>
@@ -443,9 +468,11 @@
     let summaryContainer;
     let manualForm;
     let cardList;
+    let questionInput;
 
     let currentStoryText = '';
     let isVoicePlaying = false;
+    let currentQuestion = '';
 
     const synth = window.speechSynthesis;
 
@@ -568,6 +595,8 @@
         }
       });
 
+      currentQuestion = questionInput?.value.trim() || '';
+
       if (summaryLines.length) {
         const story = generateStory(summaryLines);
         currentStoryText = story.replace(/<strong>|<\/strong>/g, '').replace(/\n/g, ' ');
@@ -575,7 +604,7 @@
         document.getElementById('reading-controls').style.display = 'flex';
       } else {
         currentStoryText = '';
-        summaryContainer.innerHTML = '<p>Select cards or draw a reading to see the story unfold here.</p>';
+        summaryContainer.innerHTML = '<p>Write a question if you have one, then draw cards to see the story unfold here.</p>';
         document.getElementById('reading-controls').style.display = 'none';
       }
     }
@@ -595,32 +624,39 @@
 
       let story = '';
 
+      story += `<strong>Your Question</strong>\n`;
+      story += currentQuestion
+        ? `You asked: "${currentQuestion}"\n\n`
+        : 'No question was spoken aloud, so the cards respond to the energy surrounding this moment.\n\n';
+
       if (past) {
-        story += `<strong>✧ Your Past ✧</strong>\n`;
-        story += `The ${past.card} brings forth the essence of your journey so far.\n`;
+        story += `<strong>Your Past</strong>\n`;
+        story += `The story opens with ${past.card}, showing what has shaped the path behind your question.\n`;
         story += `${past.meaning}\n`;
         if (past.note) story += `\nYour reflection: "${past.note}"\n`;
         story += `\n`;
       }
 
       if (present) {
-        story += `<strong>✧ Your Present ✧</strong>\n`;
-        story += `Now, at this very moment, ${present.card} stands at the center of your story.\n`;
+        story += `<strong>Your Present</strong>\n`;
+        story += `Now ${present.card} stands at the center of the matter, describing where this question lives in your life today.\n`;
         story += `${present.meaning}\n`;
         if (present.note) story += `\nYour insight: "${present.note}"\n`;
         story += `\n`;
       }
 
       if (future) {
-        story += `<strong>✧ Your Future ✧</strong>\n`;
-        story += `What awaits you is written in ${future.card}.\n`;
+        story += `<strong>Your Future</strong>\n`;
+        story += `${future.card} points toward the next chapter that may unfold if you continue along this current emotional and practical path.\n`;
         story += `${future.meaning}\n`;
         if (future.note) story += `\nYour vision: "${future.note}"\n`;
         story += `\n`;
       }
 
-      story += `\n<strong>✦ The Reading Speaks ✦</strong>\n`;
-      story += `Your three cards weave a narrative of transformation and growth. Trust the guidance they offer.`;
+      story += `\n<strong>The Reading Speaks</strong>\n`;
+      story += currentQuestion
+        ? `Taken together, these three cards tell a story about your question with honesty and movement. Notice what the past is teaching, what the present is asking of you, and what future is inviting you to become.`
+        : `Taken together, these three cards weave a story of transformation and growth. Notice what the past is teaching, what the present is asking of you, and what future is inviting you to become.`;
 
       return story;
     }
@@ -634,48 +670,55 @@
 
       let story = '';
 
+      story += `<strong>Your Question</strong>\n`;
+      story += currentQuestion
+        ? `You asked: "${currentQuestion}"\n\n`
+        : 'No question was spoken aloud, so the cards speak to the deeper atmosphere around you.\n\n';
+
       if (situation) {
-        story += `<strong>✧ The Situation ✧</strong>\n`;
-        story += `At the heart of your inquiry lies ${situation.card}.\n`;
+        story += `<strong>The Situation</strong>\n`;
+        story += `At the heart of this story lies ${situation.card}, revealing the ground on which your question stands.\n`;
         story += `${situation.meaning}\n`;
         if (situation.note) story += `\nYour understanding: "${situation.note}"\n`;
         story += `\n`;
       }
 
       if (challenge) {
-        story += `<strong>✧ The Challenge ✧</strong>\n`;
-        story += `${challenge.card} reveals the obstacle before you.\n`;
+        story += `<strong>The Challenge</strong>\n`;
+        story += `${challenge.card} reveals the tension, obstacle, or test woven into this situation.\n`;
         story += `${challenge.meaning}\n`;
         if (challenge.note) story += `\nYour awareness: "${challenge.note}"\n`;
         story += `\n`;
       }
 
       if (influence) {
-        story += `<strong>✧ Hidden Influence ✧</strong>\n`;
-        story += `Beneath the surface flows ${influence.card}.\n`;
+        story += `<strong>Hidden Influence</strong>\n`;
+        story += `Beneath the surface, ${influence.card} shows the quieter force shaping events behind the scenes.\n`;
         story += `${influence.meaning}\n`;
         if (influence.note) story += `\nYour intuition: "${influence.note}"\n`;
         story += `\n`;
       }
 
       if (advice) {
-        story += `<strong>✧ Your Path Forward ✧</strong>\n`;
-        story += `${advice.card} lights the way.\n`;
+        story += `<strong>Your Path Forward</strong>\n`;
+        story += `${advice.card} lights the way and suggests how to move through your question with more clarity.\n`;
         story += `${advice.meaning}\n`;
         if (advice.note) story += `\nYour commitment: "${advice.note}"\n`;
         story += `\n`;
       }
 
       if (outcome) {
-        story += `<strong>✧ The Outcome ✧</strong>\n`;
-        story += `This journey culminates in ${outcome.card}.\n`;
+        story += `<strong>The Outcome</strong>\n`;
+        story += `If this path continues, the story leans toward ${outcome.card} as its likely outcome.\n`;
         story += `${outcome.meaning}\n`;
         if (outcome.note) story += `\nYour wisdom: "${outcome.note}"\n`;
         story += `\n`;
       }
 
-      story += `\n<strong>✦ The Five-Fold Path ✦</strong>\n`;
-      story += `Five cards reveal the intricate dance of cause and consequence. Your reading speaks of complexity, opportunity, and the power within you.`;
+      story += `\n<strong>The Five-Fold Path</strong>\n`;
+      story += currentQuestion
+        ? `These five cards build a fuller storyline around your question, showing not just what is happening, but why it feels this way and where your power to respond truly lives.`
+        : `These five cards build a fuller storyline, showing not just what is happening, but why it feels this way and where your power to respond truly lives.`;
 
       return story;
     }
@@ -699,7 +742,7 @@
         synth.cancel();
         isVoicePlaying = false;
         document.getElementById('voice-button').classList.remove('playing');
-        document.getElementById('voice-button').textContent = '🔊 Read Aloud';
+        document.getElementById('voice-button').textContent = 'Read Aloud';
         return;
       }
 
@@ -716,13 +759,13 @@
       utterance.onstart = () => {
         isVoicePlaying = true;
         document.getElementById('voice-button').classList.add('playing');
-        document.getElementById('voice-button').textContent = '⏸ Stop Reading';
+        document.getElementById('voice-button').textContent = 'Stop Reading';
       };
 
       utterance.onend = () => {
         isVoicePlaying = false;
         document.getElementById('voice-button').classList.remove('playing');
-        document.getElementById('voice-button').textContent = '🔊 Read Aloud';
+        document.getElementById('voice-button').textContent = 'Read Aloud';
       };
 
       synth.speak(utterance);
@@ -807,9 +850,10 @@
       summaryContainer = document.getElementById('summary');
       manualForm = document.getElementById('manual-form');
       cardList = document.getElementById('card-list');
+      questionInput = document.getElementById('question-input');
 
-      if (!drawButton3 || !drawButton5 || !readingsContainer || !summaryContainer || !manualForm || !cardList) {
-        console.error('Tarot Reading App: missing DOM elements', { drawButton3, drawButton5, readingsContainer, summaryContainer, manualForm, cardList });
+      if (!drawButton3 || !drawButton5 || !readingsContainer || !summaryContainer || !manualForm || !cardList || !questionInput) {
+        console.error('Tarot Reading App: missing DOM elements', { drawButton3, drawButton5, readingsContainer, summaryContainer, manualForm, cardList, questionInput });
         return;
       }
 
@@ -844,6 +888,12 @@
         }
       });
 
+      questionInput.addEventListener('input', () => {
+        if (Object.values(readings).some(Boolean)) {
+          renderReading();
+        }
+      });
+
       manualForm.addEventListener('submit', (event) => {
         event.preventDefault();
         const cardInput = document.getElementById('manual-card').value;
@@ -864,3 +914,4 @@
   </script>
 </body>
 </html>
+
